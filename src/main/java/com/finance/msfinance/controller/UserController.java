@@ -8,6 +8,7 @@ import com.finance.msfinance.repositories.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
@@ -19,16 +20,14 @@ import java.util.stream.Collectors;
 public class UserController {
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private UserRepository userRepository;
 
     @GetMapping("/index")
     public String index() {
         return "Hola mundo";
-    }
-
-    @GetMapping("/index2")
-    public String index2() {
-        return "Hola mundo not secured";
     }
 
     @PostMapping("/createUser")
@@ -43,7 +42,7 @@ public class UserController {
         UserEntity userEntity = UserEntity.builder()
                 .name(userDTO.getName())
                 .email(userDTO.getEmail())
-                .password(userDTO.getPassword())
+                .password(passwordEncoder.encode(userDTO.getPassword()))
                 .created_date(new Date(System.currentTimeMillis()))
                 .roles(roles)
                 .build();
