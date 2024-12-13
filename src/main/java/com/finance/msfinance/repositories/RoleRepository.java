@@ -1,7 +1,0 @@
-package com.finance.msfinance.repositories;
-
-import com.finance.msfinance.models.RoleEntity;
-import org.springframework.data.repository.CrudRepository;
-
-public interface RoleRepository extends CrudRepository<RoleEntity, Long> {
-}
