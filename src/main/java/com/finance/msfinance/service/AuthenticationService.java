@@ -4,9 +4,11 @@ import com.finance.msfinance.config.jwt.JwtService;
 import com.finance.msfinance.controller.auth.dto.AuthenticationRequest;
 import com.finance.msfinance.controller.auth.dto.AuthenticationResponse;
 import com.finance.msfinance.controller.auth.dto.RegisterRequest;
+import com.finance.msfinance.exceptions.UserNotFoundException;
 import com.finance.msfinance.models.ERol;
 import com.finance.msfinance.models.UserEntity;
 import com.finance.msfinance.repositories.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,9 @@ public class AuthenticationService {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
 
     public AuthenticationResponse register(RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()){
+            throw new IllegalStateException("Email already exist");
+        }
         var user = UserEntity.builder()
                 .identification(request.getIdentification())
                 .typeIdentification(request.getTypeIdentification())
@@ -38,6 +43,7 @@ public class AuthenticationService {
                 .birthday(request.getBirthday())
                 .genre(request.getGenre())
                 .created_date(new Date(System.currentTimeMillis()))
+                .modify_date(new Date(System.currentTimeMillis()))
                 .role(ERol.USER)
                 .build();
         logger.info("User register {}", user.toString());
@@ -51,11 +57,14 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Empty email");
+        }
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
-        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
-        logger.info("User authenticate {}", user.getUsername());
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)

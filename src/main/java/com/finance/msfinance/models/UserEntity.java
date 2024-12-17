@@ -48,6 +48,7 @@ public class UserEntity implements UserDetails {
     @NotNull
     private char genre;
     private Date created_date;
+    private Date modify_date;
     private ERol role;
 
 

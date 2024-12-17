@@ -11,24 +11,23 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/auth")
 @RequiredArgsConstructor
-@Tag(name = "Authentication controller")
 public class AuthenticationController {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
     private final AuthenticationService authenticationService;
 
     @PostMapping("/register")
-    @Operation(summary = "Generate token")
     public ResponseEntity<AuthenticationResponse> generateToken(@Valid @RequestBody RegisterRequest request){
         logger.info("Authentication request received for register user: {}", request.getEmail());
         AuthenticationResponse tokenResponse = authenticationService.register(request);
         if (tokenResponse != null){
-            return ResponseEntity.ok(tokenResponse);
+            return ResponseEntity.status(HttpStatus.CREATED).body(tokenResponse);
         }
         return ResponseEntity.internalServerError().build();
     }
